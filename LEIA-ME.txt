@@ -1,10 +1,16 @@
 CONTROLE FINANCEIRO - pacote PWA (Android)
 
-1) Publique esta pasta em HTTPS (obrigatorio para instalar):
-   Netlify Drop (app.netlify.com/drop), GitHub Pages, Cloudflare Pages ou Vercel.
-   Mantenha todos os arquivos juntos na raiz (index.html, manifest.webmanifest, sw.js, icones).
-2) No Chrome do Android abra o endereco > menu (3 pontos) > "Instalar app".
+1) Publique TODOS os arquivos desta pasta, juntos na raiz, em HTTPS
+   (Netlify Drop, GitHub Pages, Cloudflare Pages ou Vercel).
+   Arquivos: index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png
+   (se subir so o index.html, o sw.js antigo continua valendo).
+2) No Chrome do Android: menu (3 pontos) > Instalar app.
 3) APK/AAB opcional: pwabuilder.com com o endereco publicado.
 
-DADOS: ficam no aparelho. Use Ajustes > Backup (JSON) antes de desinstalar ou trocar de celular.
-ATUALIZACAO: ao publicar uma nova versao do index.html, troque financas-v4 por financas-v5 (e assim por diante) em sw.js.
+ATUALIZACOES: o app agora busca sempre a versao mais nova quando ha internet
+(e usa a copia salva so offline). Ao abrir depois de publicar, ele recarrega sozinho.
+Se o GitHub Pages demorar, aguarde 1-2 minutos (cache do proprio GitHub).
+Se ainda aparecer a versao antiga: Chrome > Configuracoes do site > Limpar dados
+(faca Backup JSON antes) ou desinstale e instale de novo.
+
+DADOS: ficam no aparelho. Use Ajustes > Backup (JSON) antes de desinstalar.

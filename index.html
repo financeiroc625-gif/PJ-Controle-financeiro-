@@ -351,6 +351,6 @@ $('#dlg').addEventListener('focusin',e=>{if(e.target.matches('input'))setTimeout
 if(window.visualViewport){const vv=visualViewport,f=()=>{const d=$('#dlg'),kb=innerHeight-vv.height-vv.offsetTop;d.style.maxHeight=kb>80?Math.round(vv.height*.96)+'px':'';d.style.marginBottom=kb>80?kb+'px':''};vv.addEventListener('resize',f);vv.addEventListener('scroll',f)}
 render();
 </script>
-<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<script>if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}</script>
 </body>
 </html>
