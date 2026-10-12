@@ -7,4 +7,4 @@ CONTROLE FINANCEIRO - pacote PWA (Android)
 3) APK/AAB opcional: pwabuilder.com com o endereco publicado.
 
 DADOS: ficam no aparelho. Use Ajustes > Backup (JSON) antes de desinstalar ou trocar de celular.
-ATUALIZACAO: ao publicar uma nova versao do index.html, troque financas-v2 por financas-v3 (e assim por diante) em sw.js.
+ATUALIZACAO: ao publicar uma nova versao do index.html, troque financas-v3 por financas-v4 (e assim por diante) em sw.js.

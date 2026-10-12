@@ -107,6 +107,28 @@ dialog input{border-radius:12px;padding:12px}
 .b4.no{background:linear-gradient(#f8fafc,#cbd5e1);color:#334155;text-shadow:none;box-shadow:0 5px 0 #94a3b8,0 9px 14px #0003,inset 0 2px 0 #fff}
 .b4:active{top:4px;box-shadow:0 1px 0 #0006,0 3px 6px #0003}
 @media(max-width:340px){.bt{flex-direction:column-reverse}}
+/* cards: profundidade + contraste */
+:root{--mut:#4b5565;--bd:#d3dbe6;--ok:#15803d;--bad:#b91c1c;--c1:#fff;--c2:#f6f8fb;--sh:0 1px 0 #fff inset,0 1px 2px #1b24331a,0 10px 22px -8px #1b243333;--kr1:#ecfdf5;--kr2:#d1fae5;--krb:#6ee7b7;--krt:#065f46;--krv:#064e3b;--kd1:#fff1f2;--kd2:#ffe4e6;--kdb:#fda4af;--kdt:#9f1239;--kdv:#881337;--hp1:#047857;--hp2:#064e3b;--hn1:#be123c;--hn2:#7f1230}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--mut:#aab6c8;--bd:#2e3a4d;--c1:#1e2837;--c2:#171f2b;--sh:0 1px 0 #ffffff14 inset,0 10px 24px -8px #000b;--kr1:#064e3b;--kr2:#053a2c;--krb:#10b98166;--krt:#a7f3d0;--krv:#6ee7b7;--kd1:#4c0d1c;--kd2:#3a0b16;--kdb:#fb718566;--kdt:#fecdd3;--kdv:#fda4af;--hp1:#065f46;--hp2:#022c22;--hn1:#9f1239;--hn2:#4c0519}}
+:root[data-theme="dark"]{--mut:#aab6c8;--bd:#2e3a4d;--c1:#1e2837;--c2:#171f2b;--sh:0 1px 0 #ffffff14 inset,0 10px 24px -8px #000b;--kr1:#064e3b;--kr2:#053a2c;--krb:#10b98166;--krt:#a7f3d0;--krv:#6ee7b7;--kd1:#4c0d1c;--kd2:#3a0b16;--kdb:#fb718566;--kdt:#fecdd3;--kdv:#fda4af;--hp1:#065f46;--hp2:#022c22;--hn1:#9f1239;--hn2:#4c0519}
+.card,.kpi,.step{box-shadow:var(--sh);transition:transform .15s,box-shadow .15s}
+.card{background:linear-gradient(180deg,var(--c1),var(--c2));border-color:var(--bd);border-radius:18px}
+.kpis{gap:12px}
+.kpi{border-radius:18px;padding:14px;overflow-wrap:anywhere}
+.kpi small{font-weight:600}
+.kpi b{font-size:clamp(16px,4.6vw,24px)}
+.kpi:has(b.ok){background:linear-gradient(145deg,var(--kr1),var(--kr2));border-color:var(--krb)}
+.kpi:has(b.ok) small{color:var(--krt)}.kpi:has(b.ok) b{color:var(--krv)}
+.kpi:has(b.bad){background:linear-gradient(145deg,var(--kd1),var(--kd2));border-color:var(--kdb)}
+.kpi:has(b.bad) small{color:var(--kdt)}.kpi:has(b.bad) b{color:var(--kdv)}
+.hero{position:relative;overflow:hidden;border:0;border-radius:22px;padding:20px;color:#fff}
+.hero:has(b.ok){background:linear-gradient(145deg,var(--hp1),var(--hp2))}
+.hero:has(b.bad){background:linear-gradient(145deg,var(--hn1),var(--hn2))}
+.hero small,.hero b{color:#fff!important}.hero small{opacity:.92;font-weight:600}
+.hero::after{content:"";position:absolute;right:-36px;top:-36px;width:150px;height:150px;border-radius:50%;background:radial-gradient(#ffffff3d,transparent 70%);pointer-events:none}
+@media(max-width:360px){.kpis{grid-template-columns:1fr!important}}
+@media(min-width:800px){.hero{padding:26px}.kpis,.grid{gap:16px}}
+@media(hover:hover){.card:hover,.kpi:hover{transform:translateY(-2px)}}
 </style>
 </head>
 <body>
