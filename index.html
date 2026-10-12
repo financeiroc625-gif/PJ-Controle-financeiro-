@@ -129,6 +129,15 @@ dialog input{border-radius:12px;padding:12px}
 @media(max-width:360px){.kpis{grid-template-columns:1fr!important}}
 @media(min-width:800px){.hero{padding:26px}.kpis,.grid{gap:16px}}
 @media(hover:hover){.card:hover,.kpi:hover{transform:translateY(-2px)}}
+#cf{width:auto;max-width:none;max-height:none;box-shadow:none;border-radius:0;animation:none;margin:auto}
+#cf[open]{display:block}
+.bx{margin:0 auto}
+.bx.info .ico,.bx.ask .ico{background:linear-gradient(#60a5fa,#2563eb);box-shadow:0 5px 0 #1e40af,0 10px 18px #2563eb55,inset 0 2px 0 #fff5}
+.bx.ok .ico{background:linear-gradient(#4ade80,#16a34a);box-shadow:0 5px 0 #166534,0 10px 18px #16a34a55,inset 0 2px 0 #fff5}
+.bx.warn .ico{background:linear-gradient(#fbbf24,#d97706);box-shadow:0 5px 0 #92400e,0 10px 18px #d9770655,inset 0 2px 0 #fff5}
+.b4.info{background:linear-gradient(#60a5fa,#1d4ed8);box-shadow:0 5px 0 #1e3a8a,0 9px 14px #2563eb55,inset 0 2px 0 #fff5}
+.b4.warn{background:linear-gradient(#d97706,#92400e);box-shadow:0 5px 0 #78350f,0 9px 14px #d9770655,inset 0 2px 0 #fff5}
+.b4.info:active,.b4.warn:active{top:4px;box-shadow:0 1px 0 #0006,0 3px 6px #0003}
 </style>
 </head>
 <body>
@@ -246,8 +255,10 @@ function vCfg(){
 }
 function theme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme}
 function ask(msg,o={}){return new Promise(res=>{
- const d=$('#cf'),inp=o.input!==undefined,info=!!o.info,bad=!!o.danger,no=info?true:inp?null:false;
- d.innerHTML=`<div class="bx ${info?'i':''}"><div class="ico">${o.icon||(info?'ℹ️':bad?'🗑️':'❓')}</div><h3>${esc(o.title||(info?'Aviso':'Confirmar'))}</h3><p>${esc(msg)}</p>${inp?'<input id="cfi">':''}<div class="bt">${info?'':'<button class="b4 no" id="cfn">Cancelar</button>'}<button class="b4 ${bad?'bad':'ok'}" id="cfo">${esc(o.ok||'OK')}</button></div></div>`;
+ const d=$('#cf'),inp=o.input!==undefined,info=!!o.info,ty=o.t||(info?'info':o.danger?'err':'ask'),no=info?true:inp?null:false;
+ const IC={ok:['✅','Pronto'],warn:['⚠️','Atenção'],err:['❌','Erro'],info:['ℹ️','Aviso'],ask:['❓','Confirmar']};
+ const ic=o.icon||(o.danger&&!info?'🗑️':IC[ty][0]),bc=info?({ok:'ok',warn:'warn',err:'bad',info:'info'})[ty]:(o.danger?'bad':'ok');
+ d.innerHTML=`<div class="bx ${ty}"><div class="ico">${ic}</div><h3>${esc(o.title||IC[ty][1])}</h3><p>${esc(msg)}</p>${inp?'<input id="cfi">':''}<div class="bt">${info?'':'<button class="b4 no" id="cfn">Cancelar</button>'}<button class="b4 ${bc}" id="cfo">${esc(o.ok||'OK')}</button></div></div>`;
  if(inp)$('#cfi').value=o.input;
  const end=v=>{d.close();res(v)};
  $('#cfo').onclick=()=>end(inp?$('#cfi').value:true);
@@ -255,7 +266,7 @@ function ask(msg,o={}){return new Promise(res=>{
  d.oncancel=e=>{e.preventDefault();end(no)};
  d.onclick=e=>{if(e.target===d)end(no)};
  d.showModal()})}
-const askInfo=m=>ask(m,{info:1,icon:'⚠️',title:'Atenção'});
+const askInfo=(m,t='warn')=>ask(m,{info:1,t});
 async function editHint(k,c){const v=await ask('Deixe vazio para restaurar o padrão.',{input:hint(k,c)[1],ok:'Salvar',icon:'✎',title:'Dica de "'+c+'"'});if(v===null)return;S.hints=S.hints||{};const key=k+'|'+c;if(v.trim())S.hints[key]=v.trim();else delete S.hints[key];save();render()}
 function addCat(){const n=$('#nc').value.trim(),k=$('#nt').value;if(!n||S.cats[k].includes(n))return;S.cats[k].push(n);save();render()}
 async function rmCat(k,c){if(S.tx.some(t=>t.c==c)&&!await ask('Existem lançamentos nesta categoria. Remover mesmo assim?',{danger:1,ok:'Remover',title:'Remover categoria'}))return;S.cats[k]=S.cats[k].filter(x=>x!=c);save();render()}
@@ -290,12 +301,12 @@ function saveTx(){
  save();mon=d.slice(0,7);$('#dlg').close();render();
 }
 async function del(id){if(await ask('Este lançamento será excluído.',{danger:1,ok:'Excluir',title:'Excluir lançamento?'})){S.tx=S.tx.filter(x=>x.id!=id);save();render()}}
-async function reset(){if(await ask('Todos os lançamentos, categorias e orçamentos serão apagados. Esta ação não pode ser desfeita.',{danger:1,icon:'⚠️',ok:'Apagar tudo',title:'Apagar todos os dados?'})){S=def();save();render()}}
+async function reset(){if(await ask('Todos os lançamentos, categorias e orçamentos serão apagados. Esta ação não pode ser desfeita.',{danger:1,icon:'⚠️',ok:'Apagar tudo',title:'Apagar todos os dados?'})){S=def();save();render();askInfo('Todos os dados foram apagados.','ok')}}
 
 function dl(name,txt,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()}
 function exportJSON(){dl('financeiro_backup.json',JSON.stringify(S,null,1),'application/json')}
 function exportCSV(){const L=['Data;Tipo;Categoria;Descrição;Pagamento;Valor'];[...S.tx].sort((a,b)=>a.d.localeCompare(b.d)).forEach(t=>L.push([t.d,t.t=='r'?'Receita':'Despesa',t.c,'"'+(t.n||'').replace(/"/g,'""')+'"',t.p||'',t.v.toFixed(2).replace('.',',')].join(';')));dl('lancamentos.csv','\ufeff'+L.join('\n'),'text/csv')}
-$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tx||!d.cats)throw 0;S=d;save();render();ask('Backup importado com sucesso.',{info:1,icon:'✅',title:'Pronto'})}catch(x){askInfo('Arquivo inválido.')}};r.readAsText(f);e.target.value=''};
+$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tx||!d.cats)throw 0;S=d;save();render();askInfo('Backup importado com sucesso.','ok')}catch(x){askInfo('Arquivo inválido.','err')}};r.readAsText(f);e.target.value=''};
 const KW=[[/mercado|supermerc|super|big b|minim|market|churr|padaria|ifood|restaur|lanch|a[cç]ougue|hortifruti|atacad/i,'Alimentação'],[/uber|99 ?pop|autop|posto|combust|shell|ipiranga|estacion|ped[aá]gio|sem parar/i,'Transporte'],[/farm[aá]c|drog|raia|clini|hospital|unimed|cl[ií]nica|laborat/i,'Saúde'],[/netflix|spotify|cinema|prime|disney|youtube|viagem/i,'Lazer'],[/escola|curso|faculdade|udemy|livraria|universid|educacao/i,'Educação'],[/cpfl|enel|energia/i,'Energia'],[/sabesp|[aá]gua|vivo|claro|internet|samae|telefonica|teleco|seguradora/i,'Contas'],[/aluguel|condom[ií]nio|iptu/i,'Moradia'],[/fatura|cartoes|cart[aã]o/i,'Cartão de Crédito']];
 const KWR=[[/sal[aá]rio|folha|pagamento/i,'Salário'],[/rendimento|dividend|juros|resgate/i,'Investimentos']];
 const guess=(n,t)=>{const c=(t=='e'?KW:KWR).find(k=>k[0].test(n));const cat=c?c[1]:'Outros';return S.cats[t].includes(cat)?cat:(S.cats[t].includes('Outros')?'Outros':S.cats[t][0])};
@@ -333,8 +344,8 @@ function impRender(k){if(!k)impCalc();const R=IM.rows;
  <div class="chips" style="margin-bottom:6px"><button class="chip" onclick="IM.rows.forEach(r=>r.ok=true);impRender(1)">Marcar todos</button><button class="chip" onclick="IM.rows.forEach(r=>r.ok=false);impRender(1)">Desmarcar todos</button></div><div>${R.map((r,i)=>`<div class="tx"><input type="checkbox" style="width:22px;height:22px;flex:none;padding:0" ${r.ok?'checked':''} onchange="IM.rows[${i}].ok=this.checked;impSum()"><div class="i"><b>${esc(r.n||'(sem descrição)')}</b><small class="mut">${fd(r.d)} · ${esc(r.c)}${r.dup?' · ⚠️ já lançado?':''}</small></div><span class="v ${r.t=='r'?'ok':'bad'}">${r.t=='r'?'+':'-'}${brl(r.v)}</span></div>`).join('')}</div></div>
  <div class="ft"><button class="btn g" onclick="$('#dlg').close()">Cancelar</button><button class="btn" id="impb" onclick="impDo()"></button></div>`;impSum()}
 function impSum(){$('#impb').textContent='Importar '+IM.rows.filter(r=>r.ok).length}
-function impDo(){const sel=IM.rows.filter(r=>r.ok);if(!sel.length)return;sel.forEach(r=>S.tx.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:r.t,v:r.v,n:r.n,c:r.c,d:r.d,p:IM.mode=='c'?'Crédito':'Débito'}));save();mon=sel.map(r=>r.d).sort().pop().slice(0,7);$('#dlg').close();render()}
-$('#ext').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const buf=await f.arrayBuffer();let rows=[];try{if(/\.pdf$/i.test(f.name)){rows=parseStmt(await pdfText(buf))}else{let txt;try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(x){txt=new TextDecoder('windows-1252').decode(buf)}const tt=/\.txt$/i.test(f.name);rows=tt?parseStmt(txt):parseExt(txt);if(!rows.length)rows=tt?parseExt(txt):parseStmt(txt)}}catch(x){askInfo('Não consegui ler o PDF (é preciso internet para carregar o leitor). Tente exportar em CSV/OFX ou salvar o texto do extrato em um arquivo .txt.');return}if(!rows.length){askInfo('Não encontrei lançamentos neste arquivo. Use um extrato em PDF, CSV ou OFX.');return}IM={rows,mode:'b'};impRender();$('#dlg').showModal()};
+function impDo(){const sel=IM.rows.filter(r=>r.ok);if(!sel.length)return;sel.forEach(r=>S.tx.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:r.t,v:r.v,n:r.n,c:r.c,d:r.d,p:IM.mode=='c'?'Crédito':'Débito'}));save();mon=sel.map(r=>r.d).sort().pop().slice(0,7);$('#dlg').close();render();askInfo(sel.length+(sel.length>1?' lançamentos importados':' lançamento importado')+' com sucesso.','ok')}
+$('#ext').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const buf=await f.arrayBuffer();let rows=[];try{if(/\.pdf$/i.test(f.name)){rows=parseStmt(await pdfText(buf))}else{let txt;try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(x){txt=new TextDecoder('windows-1252').decode(buf)}const tt=/\.txt$/i.test(f.name);rows=tt?parseStmt(txt):parseExt(txt);if(!rows.length)rows=tt?parseExt(txt):parseStmt(txt)}}catch(x){askInfo('Não consegui ler o PDF (é preciso internet para carregar o leitor). Tente exportar em CSV/OFX ou salvar o texto do extrato em um arquivo .txt.','err');return}if(!rows.length){askInfo('Não encontrei lançamentos neste arquivo. Use um extrato em PDF, CSV ou OFX.');return}IM={rows,mode:'b'};impRender();$('#dlg').showModal()};
 $('#dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 $('#dlg').addEventListener('focusin',e=>{if(e.target.matches('input'))setTimeout(()=>e.target.scrollIntoView({block:'center',behavior:'smooth'}),350)});
 if(window.visualViewport){const vv=visualViewport,f=()=>{const d=$('#dlg'),kb=innerHeight-vv.height-vv.offsetTop;d.style.maxHeight=kb>80?Math.round(vv.height*.96)+'px':'';d.style.marginBottom=kb>80?kb+'px':''};vv.addEventListener('resize',f);vv.addEventListener('scroll',f)}
