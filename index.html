@@ -138,6 +138,31 @@ dialog input{border-radius:12px;padding:12px}
 .b4.info{background:linear-gradient(#60a5fa,#1d4ed8);box-shadow:0 5px 0 #1e3a8a,0 9px 14px #2563eb55,inset 0 2px 0 #fff5}
 .b4.warn{background:linear-gradient(#d97706,#92400e);box-shadow:0 5px 0 #78350f,0 9px 14px #d9770655,inset 0 2px 0 #fff5}
 .b4.info:active,.b4.warn:active{top:4px;box-shadow:0 1px 0 #0006,0 3px 6px #0003}
+/* botoes 3D */
+:root{--g1:#fff;--g2:#e9eef5;--g3:#b4c0d0}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--g1:#2b3749;--g2:#202a39;--g3:#0a0f16}}
+:root[data-theme="dark"]{--g1:#2b3749;--g2:#202a39;--g3:#0a0f16}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn,.ic,.chip,.fab,nav button.on{transition:transform .08s,box-shadow .08s,filter .15s}
+.btn{border-radius:14px;padding:11px 16px;min-height:44px;color:#fff;text-shadow:0 1px 0 #0003;background:linear-gradient(#5b9bff,#2563eb);box-shadow:0 5px 0 #1e40af,0 10px 16px #2563eb44,inset 0 2px 0 #ffffff55;margin-bottom:5px}
+.btn.g{color:var(--tx);text-shadow:none;border:1px solid var(--bd);background:linear-gradient(var(--g1),var(--g2));box-shadow:0 5px 0 var(--g3),0 10px 16px #0002,inset 0 2px 0 #ffffff66}
+.btn.r{background:linear-gradient(#fb7185,#dc2626);box-shadow:0 5px 0 #991b1b,0 10px 16px #dc262644,inset 0 2px 0 #ffffff55}
+.btn.pdf{background:linear-gradient(#818cf8,#4f46e5);box-shadow:0 5px 0 #3730a3,0 10px 16px #4f46e544,inset 0 2px 0 #ffffff55}
+.btn:active,.fab:active{transform:translateY(4px)}
+.btn:active{box-shadow:0 1px 0 #0007,0 3px 6px #0003,inset 0 2px 0 #ffffff33}
+.btn.g:active{box-shadow:0 1px 0 var(--g3),0 3px 6px #0002}
+.fab{background:linear-gradient(#5b9bff,#2563eb);box-shadow:0 6px 0 #1e40af,0 12px 20px #2563eb66,inset 0 2px 0 #ffffff55}
+.fab:active{box-shadow:0 2px 0 #1e40af,0 4px 8px #2563eb55}
+.ic{min-width:38px;min-height:38px;border-radius:11px;color:var(--tx);background:linear-gradient(var(--g1),var(--g2));box-shadow:0 3px 0 var(--g3),0 5px 8px #0002,inset 0 1px 0 #ffffff66;margin-bottom:3px}
+.ic:active{transform:translateY(2px);box-shadow:0 1px 0 var(--g3)}
+.chip{border-radius:12px;color:var(--tx);background:linear-gradient(var(--g1),var(--g2));box-shadow:0 3px 0 var(--g3),inset 0 1px 0 #ffffff66;margin-bottom:3px}
+.chip.on{color:#fff;border-color:transparent;background:linear-gradient(#5b9bff,#2563eb);box-shadow:0 3px 0 #1e40af,inset 0 1px 0 #ffffff55}
+.chip:active{transform:translateY(2px);box-shadow:0 1px 0 var(--g3)}
+.seg{box-shadow:0 3px 0 var(--g3);background:linear-gradient(var(--g1),var(--g2))}
+nav button{border-radius:14px;margin:6px 3px}
+nav button.on{background:linear-gradient(var(--g1),var(--g2));box-shadow:0 3px 0 var(--g3),0 5px 8px #0002}
+@media(max-width:380px){.btn{padding:10px 12px;font-size:14px}.chip{padding:7px 10px;font-size:13px}}
+@media(hover:hover){.btn:hover,.chip:hover,.ic:hover{filter:brightness(1.06)}}
 </style>
 </head>
 <body>
@@ -230,14 +255,46 @@ function vPainel(){
 
 function txRow(t){return `<div class="tx"><i class="dot" style="background:${color(t.c)}"></i><div class="i"><b>${esc(t.n||t.c)}</b><small class="mut">${fd(t.d)} · ${esc(t.c)} · ${esc(t.p||'')}</small></div><span class="v ${t.t=='r'?'ok':'bad'}">${t.t=='r'?'+':'-'}${brl(t.v)}</span><button class="ic" onclick="openForm('${t.id}')">✏️</button><button class="ic" onclick="del('${t.id}')">🗑️</button></div>`}
 
+let per='mes',d1='',d2='';
+const PERS=[['mes','Mês'],['7','7 dias'],['30','30 dias'],['90','3 meses'],['ano','Ano'],['all','Tudo'],['custom','Período']];
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const ago=n=>{const d=new Date();d.setDate(d.getDate()-n+1);return iso(d)};
+const cnt=n=>n+' lançamento'+(n==1?'':'s');
+const inPer=x=>per=='mes'?x.d.startsWith(mon):per=='ano'?x.d.startsWith(mon.slice(0,4)):per=='all'?true:per=='custom'?(!d1||x.d>=d1)&&(!d2||x.d<=d2):(x.d>=ago(+per)&&x.d<=iso(new Date()));
+const filtered=()=>S.tx.filter(inPer).filter(x=>(!ft||x.t==ft)&&(!q||(x.n+x.c).toLowerCase().includes(q.toLowerCase()))).sort((a,b)=>b.d.localeCompare(a.d));
+function perLabel(){if(per=='mes')return monLabel(mon).replace(/^./,c=>c.toUpperCase());if(per=='ano')return 'Ano de '+mon.slice(0,4);if(per=='all')return 'Todo o período';if(per=='custom')return (d1?fd(d1):'Início')+' a '+(d2?fd(d2):'hoje');return 'Últimos '+per+' dias ('+fd(ago(+per))+' a '+fd(iso(new Date()))+')'}
+function setPer(k){per=k;render()}
 function vLanc(){
- let t=mtx(mon).filter(x=>(!ft||x.t==ft)&&(!q||(x.n+x.c).toLowerCase().includes(q.toLowerCase())));
- t.sort((a,b)=>b.d.localeCompare(a.d));
- return `<div class="card"><div class="row"><input placeholder="Buscar..." value="${esc(q)}" oninput="q=this.value;keep()"><select onchange="ft=this.value;render()"><option value="">Todos</option><option value="e" ${ft=='e'?'selected':''}>Despesas</option><option value="r" ${ft=='r'?'selected':''}>Receitas</option></select></div></div>
+ const t=filtered();
+ return `<div class="card"><div class="chips" style="margin-bottom:10px">${PERS.map(p=>`<button class="chip ${per==p[0]?'on':''}" onclick="setPer('${p[0]}')">${p[1]}</button>`).join('')}</div>
+ ${per=='custom'?`<div class="row" style="margin-bottom:10px"><div><label>De</label><input type="date" value="${d1}" onchange="d1=this.value;render()"></div><div><label>Até</label><input type="date" value="${d2}" onchange="d2=this.value;render()"></div></div>`:''}
+ <div class="row"><input placeholder="Buscar..." value="${esc(q)}" oninput="q=this.value;keep()"><select onchange="ft=this.value;render()"><option value="">Todos</option><option value="e" ${ft=='e'?'selected':''}>Despesas</option><option value="r" ${ft=='r'?'selected':''}>Receitas</option></select></div>
+ <p class="mut" id="plb" style="margin:10px 0 0;font-size:13px">${esc(perLabel())} · ${cnt(t.length)}</p>
+ <button class="btn pdf" style="width:100%;margin-top:12px" onclick="gerarPDF()">📄 Gerar relatório em PDF</button></div>
  <div class="card" id="list">${listHtml(t)}</div>`;
 }
 function listHtml(t){return t.length?t.map(txRow).join('')+`<p class="mut" style="text-align:right;margin:10px 0 0">Total filtrado: <b>${brl(sum(t.filter(x=>x.t=='r'))-sum(t.filter(x=>x.t=='e')))}</b></p>`:'<div class="empty">Nenhum lançamento encontrado</div>'}
-function keep(){const t=mtx(mon).filter(x=>(!ft||x.t==ft)&&(!q||(x.n+x.c).toLowerCase().includes(q.toLowerCase()))).sort((a,b)=>b.d.localeCompare(a.d));$('#list').innerHTML=listHtml(t)}
+function keep(){const t=filtered();$('#list').innerHTML=listHtml(t);$('#plb').textContent=perLabel()+' · '+cnt(t.length)}
+const JS1='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',JS2='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js';
+async function gerarPDF(){
+ const rows=filtered();
+ if(!rows.length){askInfo('Não há lançamentos neste filtro para gerar o relatório.');return}
+ try{if(!(window.jspdf&&window.jspdf.jsPDF))await loadJS(JS1);if(!window.jspdf.jsPDF.API.autoTable)await loadJS(JS2)}catch(x){askInfo('Não consegui carregar o gerador de PDF. Conecte-se à internet na primeira vez.','err');return}
+ const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),M=40,f=v=>brl(v).replace(/\u00a0/g,' ');
+ const R=rows.filter(x=>x.t=='r'),E=rows.filter(x=>x.t=='e'),tr=sum(R),te=sum(E),sd=tr-te;
+ doc.setFillColor(5,150,105);doc.rect(0,0,W,80,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(20);doc.text('Relatório financeiro',M,36);
+ doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.text(perLabel()+(ft?' · '+(ft=='e'?'Despesas':'Receitas'):'')+(q?' · busca: '+q:''),M,56);doc.text('Gerado em '+new Date().toLocaleDateString('pt-BR'),W-M,56,{align:'right'});
+ const bw=(W-2*M-24)/3,neg=[255,228,230],ng=[159,18,57];
+ [[M,'Receitas',f(tr),[209,250,229],[6,95,70]],[M+bw+12,'Despesas',f(te),neg,ng],[M+2*(bw+12),'Saldo',f(sd),sd>=0?[219,234,254]:neg,sd>=0?[30,64,175]:ng]].forEach(b=>{doc.setFillColor(...b[3]);doc.roundedRect(b[0],98,bw,54,8,8,'F');doc.setTextColor(...b[4]);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(b[1],b[0]+10,116);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(b[2],b[0]+10,140)});
+ let y=176;const by={};E.forEach(x=>by[x.c]=(by[x.c]||0)+x.v);const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+ const hd=(s,yy)=>{doc.setTextColor(27,36,51);doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(s,M,yy)};
+ if(cats.length){hd('Despesas por categoria',y);doc.autoTable({startY:y+8,margin:{left:M,right:M},head:[['Categoria','Total','% das despesas']],body:cats.map(([c,v])=>[c,f(v),Math.round(v/te*100)+'%']),headStyles:{fillColor:[5,150,105]},styles:{fontSize:9.5},columnStyles:{1:{halign:'right'},2:{halign:'right'}}});y=doc.lastAutoTable.finalY+26}
+ hd('Lançamentos ('+rows.length+')',y);
+ doc.autoTable({startY:y+8,margin:{left:M,right:M,bottom:44},head:[['Data','Descrição','Categoria','Pagamento','Valor']],body:rows.map(x=>[fd(x.d),x.n||'-',x.c,x.p||'-',(x.t=='r'?'+ ':'- ')+f(x.v)]),headStyles:{fillColor:[5,150,105]},styles:{fontSize:9},columnStyles:{4:{halign:'right',fontStyle:'bold'}},didParseCell:h=>{if(h.section=='body'&&h.column.index==4)h.cell.styles.textColor=rows[h.row.index].t=='r'?[21,128,61]:[185,28,28]}});
+ const n=doc.internal.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(110,120,135);doc.text('Controle Financeiro',M,H-24);doc.text('Página '+i+' de '+n,W-M,H-24,{align:'right'})}
+ doc.save('relatorio-financeiro-'+iso(new Date())+'.pdf');
+ askInfo('Relatório gerado. Procure o PDF nos downloads do aparelho.','ok')
+}
 
 function vOrc(){
  const t=mtx(mon).filter(x=>x.t=='e');
