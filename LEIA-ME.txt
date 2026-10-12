@@ -1,14 +1,10 @@
-CONTROLE FINANCEIRO - pacote para instalar no Android
+CONTROLE FINANCEIRO - pacote PWA (Android)
 
-1) Publique esta pasta em um endereço HTTPS (obrigatório para instalar):
-   - Netlify Drop: arraste a pasta em app.netlify.com/drop
-   - ou GitHub Pages / Cloudflare Pages / Vercel.
-2) No Chrome do Android abra o endereço e toque em
-   menu (3 pontos) > "Instalar app" (ou "Adicionar à tela inicial").
-   Ele abre em tela cheia, com ícone próprio e funciona offline.
-3) Para gerar um APK/AAB (opcional): pwabuilder.com, cole o endereço
-   do passo 1 e escolha Android.
+1) Publique esta pasta em HTTPS (obrigatorio para instalar):
+   Netlify Drop (app.netlify.com/drop), GitHub Pages, Cloudflare Pages ou Vercel.
+   Mantenha todos os arquivos juntos na raiz (index.html, manifest.webmanifest, sw.js, icones).
+2) No Chrome do Android abra o endereco > menu (3 pontos) > "Instalar app".
+3) APK/AAB opcional: pwabuilder.com com o endereco publicado.
 
-IMPORTANTE: os dados ficam no navegador/app. Use Ajustes > Backup (JSON)
-antes de trocar de aparelho ou desinstalar. Ao mudar a atualização do
-app, aumente o numero em sw.js (financas-v2 -> financas-v2).
+DADOS: ficam no aparelho. Use Ajustes > Backup (JSON) antes de desinstalar ou trocar de celular.
+ATUALIZACAO: ao publicar uma nova versao do index.html, troque financas-v1 por financas-v2 (e assim por diante) em sw.js.
