@@ -181,7 +181,7 @@ const COLORS=['#2563eb','#16a34a','#d97706','#dc2626','#9333ea','#0891b2','#db27
 const def=()=>({tx:[],budgets:{},cats:{e:['Moradia','Alimentação','Transporte','Saúde','Lazer','Educação','Contas','Outros'],r:['Salário','Extra','Investimentos','Outros']}});
 let S=load(),mon=new Date().toISOString().slice(0,7),view='painel',q='',ft='';
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.tx)return d}catch(e){}return def()}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}try{cloudPush()}catch(e){}}
 const $=s=>document.querySelector(s);
 let HID=false;try{HID=localStorage.getItem(KEY+'_hide')=='1'}catch(e){}
 function toggleHide(){HID=!HID;try{localStorage.setItem(KEY+'_hide',HID?'1':'0')}catch(e){}render()}
@@ -315,8 +315,9 @@ function setB(c,v){S.budgets[c]=+v||0;save();render()}
 function vCfg(){
  return `<div class="card"><h2>Categorias</h2><p class="mut" style="margin:0 0 10px">Toque em ✎ para editar a dica que aparece ao lançar.</p><div class="row"><input id="nc" placeholder="Nova categoria"><select id="nt"><option value="e">Despesa</option><option value="r">Receita</option></select><button class="btn" style="flex:none" onclick="addCat()">Adicionar</button></div>
  ${['e','r'].map(k=>`<p class="mut" style="margin:12px 0 4px">${k=='e'?'Despesas':'Receitas'}</p>${S.cats[k].map(c=>`<span class="ic" style="display:inline-block;margin:0 6px 6px 0"><i class="dot" style="background:${color(c)}"></i>${esc(c)} <a href="#" onclick="editHint('${k}','${esc(c)}');return false" style="text-decoration:none">✎</a> <a href="#" onclick="rmCat('${k}','${esc(c)}');return false" style="color:var(--bad);text-decoration:none">✕</a></span>`).join('')}`).join('')}</div>
+ ${vCloud()}
  <div class="card"><h2>Dados</h2><div class="row" style="flex-wrap:wrap"><button class="btn g" onclick="exportJSON()">⬇️ Backup (JSON)</button><button class="btn g" onclick="exportCSV()">⬇️ Exportar CSV</button><button class="btn g" onclick="$('#imp').click()">⬆️ Importar backup</button><button class="btn g" onclick="$('#ext').click()">📥 Importar extrato (PDF/CSV/OFX)</button></div>
- <p class="mut">Os dados ficam salvos somente neste navegador. Faça backup regularmente.</p><button class="btn r" onclick="reset()">Apagar todos os dados</button></div>
+ <p class="mut">Os dados ficam salvos neste aparelho e também na nuvem (card acima). Faça backup regularmente.</p><button class="btn r" onclick="reset()">Apagar todos os dados</button></div>
  <div class="card"><h2>Tema</h2><div class="seg"><button onclick="theme('')">Auto</button><button onclick="theme('light')">Claro</button><button onclick="theme('dark')">Escuro</button></div></div>`;
 }
 function theme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme}
@@ -362,7 +363,7 @@ function setP(p){fpay=p;$('#fp').innerHTML=PAY.map(x=>`<button class="chip ${x[0
 function saveTx(){
  const v=parseFloat($('#fv').value),d=$('#fd').value;
  if(!(v>0)||!d){askInfo('Informe um valor válido e a data.');return}
- const o={t:ftype,v,n:$('#fn').value.trim(),c:fcat,d,p:fpay};
+ const o={t:ftype,v,n:$('#fn').value.trim(),c:fcat,d,p:fpay,upd:Date.now()};
  if(window._id)Object.assign(S.tx.find(x=>x.id==window._id),o);else S.tx.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),ts:Date.now(),...o});
  save();mon=d.slice(0,7);$('#dlg').close();render();
 }
@@ -416,6 +417,77 @@ $('#dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTa
 $('#dlg').addEventListener('focusin',e=>{if(e.target.matches('input'))setTimeout(()=>e.target.scrollIntoView({block:'center',behavior:'smooth'}),350)});
 if(window.visualViewport){const vv=visualViewport,f=()=>{const d=$('#dlg'),kb=innerHeight-vv.height-vv.offsetTop;d.style.maxHeight=kb>80?Math.round(vv.height*.96)+'px':'';d.style.marginBottom=kb>80?kb+'px':''};vv.addEventListener('resize',f);vv.addEventListener('scroll',f)}
 render();
+
+/* ===== NUVEM (Firestore, sem login: codigo secreto) ===== */
+var FBCFG={apiKey:"AIzaSyD0BHHRFCId-d4vbxuRVsrnkSDL9bjKG6U",authDomain:"controle-financeiro-154c1.firebaseapp.com",projectId:"controle-financeiro-154c1",storageBucket:"controle-financeiro-154c1.firebasestorage.app",messagingSenderId:"1059789538967",appId:"1:1059789538967:web:fdb2fb8a642381f26f8bd2"};
+var CLOUD={code:'',st:'load',err:''},FB={},unsubT=null,unsubM=null,synced={},metaSig='',metaReady=false,pushT=0,applying=false;
+const getCode=()=>{try{return localStorage.getItem(KEY+'_code')||''}catch(e){return ''}};
+const newCode=()=>{const a=new Uint8Array(24);crypto.getRandomValues(a);return[...a].map(b=>b.toString(16).padStart(2,'0')).join('')};
+function cRender(){if(view=='cfg')render()}
+function cStatus(st,err){CLOUD.st=st;CLOUD.err=err||'';cRender()}
+function vCloud(){
+ let b;
+ if(CLOUD.st=='load')b='<p class="mut">Conectando à nuvem…</p>';
+ else if(CLOUD.st=='off')b='<p class="mut">Nuvem indisponível agora (sem internet?). O app segue funcionando offline.</p><button class="btn g" onclick="cloudInit()">Tentar de novo</button>';
+ else b='<p class="mut" style="margin:0 0 10px">'+(CLOUD.err?'⚠️ '+esc(CLOUD.err):CLOUD.st=='ok'?'✅ Sincronizado automaticamente':'🔄 Sincronizando…')+'</p><p class="mut" style="margin:0 0 10px;font-size:13px">Para usar em outro aparelho, copie o código aqui e cole lá em "Usar outro código". Guarde-o: quem tiver o código acessa seus dados.</p><div class="row" style="flex-wrap:wrap"><button class="btn g" onclick="cCopy()">📋 Copiar código</button><button class="btn g" onclick="cJoin()">🔗 Usar outro código</button></div>';
+ return '<div class="card"><h2>☁️ Nuvem</h2>'+b+'</div>'}
+async function cCopy(){try{await navigator.clipboard.writeText(CLOUD.code);askInfo('Código copiado.','ok')}catch(e){ask('Copie manualmente:',{input:CLOUD.code,ok:'Fechar',title:'Seu código'})}}
+async function cJoin(){
+ const v=await ask('Cole o código copiado do outro aparelho. Os dados deste aparelho serão somados aos dessa conta.',{input:'',ok:'Conectar',icon:'🔗',title:'Usar outro código'});
+ if(v===null)return;const c=v.trim().toLowerCase();
+ if(!/^[0-9a-f]{48}$/.test(c)){askInfo('Código inválido.','err');return}
+ if(c===CLOUD.code)return;
+ try{localStorage.setItem(KEY+'_code',c)}catch(e){}
+ startSync(c)}
+async function cloudInit(){
+ CLOUD.st='load';cRender();
+ try{
+  const V='https://www.gstatic.com/firebasejs/10.12.2/';
+  if(!window.firebase){await loadJS(V+'firebase-app-compat.js');await loadJS(V+'firebase-firestore-compat.js')}
+  if(!FB.db){firebase.initializeApp(FBCFG);FB.db=firebase.firestore();try{await FB.db.enablePersistence({synchronizeTabs:true})}catch(e){}}
+  let c=getCode();if(!c){c=newCode();try{localStorage.setItem(KEY+'_code',c)}catch(e){}}
+  startSync(c)
+ }catch(e){cStatus('off')}}
+function cStop(){if(unsubT)unsubT();if(unsubM)unsubM();unsubT=unsubM=null;synced={};metaSig='';metaReady=false;clearTimeout(pushT)}
+const cLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const metaOf=()=>JSON.parse(JSON.stringify({budgets:S.budgets||{},cats:S.cats,hints:S.hints||{}}));
+function startSync(code){
+ cStop();CLOUD.code=code;cStatus('sync');
+ const base=FB.db.collection('vault').doc(code);let firstT=true,firstM=true;
+ const onErr=x=>cStatus('ok',x&&x.code=='permission-denied'?'Sem permissão: publique as regras do Firestore (arquivo firestore.rules).':'Erro de sincronização: '+((x&&x.message)||x));
+ unsubT=base.collection('tx').onSnapshot(snap=>{
+  applying=true;let ch=false;
+  snap.docChanges().forEach(c=>{
+   const id=c.doc.id,v=c.doc.data();
+   if(c.type=='removed'){const n=S.tx.length;S.tx=S.tx.filter(x=>x.id!=id);delete synced[id];if(S.tx.length!=n)ch=true;return}
+   if(c.doc.metadata.hasPendingWrites)return;
+   const i=S.tx.findIndex(x=>x.id==id);
+   if(i<0){S.tx.push(v);ch=true}
+   else if((v.upd||v.ts||0)>=(S.tx[i].upd||S.tx[i].ts||0)){if(JSON.stringify(S.tx[i])!=JSON.stringify(v)){S.tx[i]=v;ch=true}}
+   synced[id]=JSON.stringify(S.tx.find(x=>x.id==id))});
+  applying=false;
+  if(ch){cLocal();render()}
+  if(firstT){firstT=false;doPush()}else cStatus('ok')},onErr);
+ unsubM=base.collection('meta').doc('config').onSnapshot(d=>{
+  if(d.metadata.hasPendingWrites&&!firstM)return;
+  if(d.exists){const r=d.data();
+   if(firstM){S.cats={e:[...new Set([...(S.cats.e||[]),...((r.cats||{}).e||[])])],r:[...new Set([...(S.cats.r||[]),...((r.cats||{}).r||[])])]};S.budgets={...(S.budgets||{}),...(r.budgets||{})};S.hints={...(S.hints||{}),...(r.hints||{})}}
+   else{if(r.cats&&r.cats.e&&r.cats.r)S.cats=r.cats;S.budgets=r.budgets||{};S.hints=r.hints||{}}
+   metaSig=JSON.stringify(r);cLocal();render()}
+  if(firstM){firstM=false;metaReady=true;doPush()}},onErr)}
+function cloudPush(){if(!CLOUD.code||applying||!FB.db)return;clearTimeout(pushT);pushT=setTimeout(doPush,500)}
+async function doPush(){
+ if(!CLOUD.code)return;
+ const base=FB.db.collection('vault').doc(CLOUD.code),ops=[],cur=new Set(),mark=[];
+ S.tx.forEach(t=>{cur.add(t.id);const s=JSON.stringify(t);if(synced[t.id]!==s){ops.push(b=>b.set(base.collection('tx').doc(String(t.id)),JSON.parse(s)));synced[t.id]=s;mark.push(t.id)}});
+ Object.keys(synced).forEach(id=>{if(!cur.has(id)){ops.push(b=>b.delete(base.collection('tx').doc(id)));delete synced[id]}});
+ const m=metaOf(),ms=JSON.stringify(m);
+ if(metaReady&&ms!==metaSig){ops.push(b=>b.set(base.collection('meta').doc('config'),m));metaSig=ms}
+ if(!ops.length){cStatus('ok');return}
+ cStatus('sync');
+ try{for(let i=0;i<ops.length;i+=400){const b=FB.db.batch();ops.slice(i,i+400).forEach(f=>f(b));await b.commit()}cStatus('ok')}
+ catch(x){mark.forEach(id=>delete synced[id]);metaSig='';cStatus('ok',x&&x.code=='permission-denied'?'Sem permissão: publique as regras do Firestore (arquivo firestore.rules).':'Falha ao enviar: '+((x&&x.message)||x))}}
+cloudInit();
 </script>
 <script>if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}</script>
 </body>
