@@ -422,7 +422,41 @@ render();
 var FBCFG={apiKey:"AIzaSyD0BHHRFCId-d4vbxuRVsrnkSDL9bjKG6U",authDomain:"controle-financeiro-154c1.firebaseapp.com",projectId:"controle-financeiro-154c1",storageBucket:"controle-financeiro-154c1.firebasestorage.app",messagingSenderId:"1059789538967",appId:"1:1059789538967:web:fdb2fb8a642381f26f8bd2"};
 var CLOUD={u:null,st:'load',err:''},FB={},unsubT=null,unsubM=null,synced={},metaSig='',metaReady=false,pushT=0,applying=false;
 const lsGet=k=>{try{return localStorage.getItem(KEY+k)||''}catch(e){return ''}},lsSet=(k,v)=>{try{v?localStorage.setItem(KEY+k,v):localStorage.removeItem(KEY+k)}catch(e){}};
-(function(){const st=document.createElement('style');st.textContent='#lg{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(120% 80% at 50% 0,#0b3d33 0,var(--bg) 62%);color:var(--tx);display:none;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));overflow:auto}#lg .lgb{width:min(380px,100%);margin:auto}#lg .lgh{text-align:center;margin-bottom:20px}#lg .lgh img{width:84px;height:84px;border-radius:22px;display:block;margin:0 auto 12px;box-shadow:0 10px 30px #10b98133}#lg h1{font-size:22px;margin:0 0 4px}#lg .lgh p{margin:0;color:var(--mut);font-size:14px}#lg .lgc{background:var(--card);border:1px solid var(--bd);border-radius:22px;padding:18px;box-shadow:0 20px 50px #0004}#lg label{display:block;font-size:12px;font-weight:600;color:var(--mut);margin:0 0 5px 2px}#lg input{width:100%;box-sizing:border-box;border:1px solid var(--bd);background:var(--bg);border-radius:12px;padding:13px;font-size:16px;margin-bottom:12px}#lg input:focus{outline:2px solid var(--pri);border-color:transparent}#lg .pw{position:relative}#lg .pw input{padding-right:46px}#lg .pw button{position:absolute;right:4px;top:3px;width:42px;height:42px;border:0;background:none;font-size:18px;cursor:pointer}#lg .go{width:100%;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:16px;color:#fff;background:linear-gradient(#10b981,#059669);cursor:pointer;margin-top:2px}#lg .go[disabled]{opacity:.6}#lg .msg{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px;line-height:1.4}#lg .msg.e{background:#dc262622;color:var(--bad)}#lg .msg.k{background:#16a34a22;color:var(--ok)}#lg .lk{display:flex;justify-content:space-between;gap:10px;margin-top:14px;font-size:14px}#lg .lk a{color:var(--pri);text-decoration:none;font-weight:600}#lg .ft2{text-align:center;color:var(--mut);font-size:12px;margin-top:16px}';document.head.appendChild(st);const d=document.createElement('div');d.id='lg';document.body.appendChild(d)})();
+(function(){
+const hx=(k,w)=>`<svg width="${w}" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 16px #00c8f873)"><defs><linearGradient id="hg${k}" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0d3878"/><stop offset="1" stop-color="#051225"/></linearGradient><linearGradient id="hs${k}" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00eaff"/><stop offset=".5" stop-color="#0088cc"/><stop offset="1" stop-color="#00c8f8"/></linearGradient></defs><polygon points="50,4 96,28 96,82 50,106 4,82 4,28" fill="url(#hg${k})" stroke="url(#hs${k})" stroke-width="2.5"/><polygon points="50,12 88,33 88,78 50,98 12,78 12,33" stroke="#00c8f82e" stroke-width="1"/>${[[50,4],[96,28],[96,82],[50,106],[4,82],[4,28]].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="2.5" fill="#00eaff" opacity=".8"/>`).join('')}<text x="50" y="69" text-anchor="middle" font-family="Orbitron,Segoe UI,Arial,sans-serif" font-weight="900" font-size="44" fill="#eef4ff">P<tspan fill="#00eaff">J</tspan></text></svg>`;
+const sl=[
+`<div class="sl"><div class="s1">${hx(1,128)}<div class="bn"><b>PJ</b><i>·</i>TECNOLOGIA</div><div class="bs">e&nbsp; Sistemas</div><div class="dv"></div><div class="tg"><b>Inovação que conecta.</b> Tecnologia que transforma.</div></div></div>`,
+`<div class="sl"><div class="s2">${hx(2,92)}<div><div class="bn"><b>PJ</b> TECNOLOGIA</div><div class="bs">e&nbsp; Sistemas</div></div></div></div>`,
+`<div class="sl"><div class="s3">${hx(3,84)}<div class="tg2">Inovação que conecta.</div><div class="tg2 c">Tecnologia que transforma.</div></div></div>`];
+const css=`#lg{--bg:#061126;--card:#0b1d38;--tx:#eef4ff;--mut:#9fb3d1;--bd:#1c3560;--pri:#38bdf8;--ok:#34d399;--bad:#f87171;position:fixed;inset:0;z-index:2147483000;background:linear-gradient(#00c8f80a 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,#00c8f80a 1px,transparent 1px) 0 0/40px 40px,radial-gradient(ellipse 80% 55% at 50% 30%,#0d3878aa 0,transparent 70%),#050d1a;color:var(--tx);display:none;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));overflow:auto}
+#lgw{width:100%;margin:auto;display:flex;flex-direction:column;align-items:center}
+#lgs{position:relative;width:100%;height:clamp(230px,34vh,300px);margin-bottom:12px;pointer-events:none}
+#lgs .s1 svg{width:clamp(70px,15vh,128px);height:auto}
+#lgs .sl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;animation:lgsl 18s infinite}
+#lgs .sl:nth-child(2){animation-delay:6s}#lgs .sl:nth-child(3){animation-delay:12s}
+@keyframes lgsl{0%{opacity:0;transform:scale(.94) translateY(14px)}6%,30%{opacity:.95;transform:scale(1) translateY(0)}38%{opacity:0;transform:scale(1.06) translateY(-14px)}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){#lgs .sl{animation:none;opacity:0}#lgs .sl:first-child{opacity:.4}}
+#lgs .s1,#lgs .s3{display:flex;flex-direction:column;align-items:center;text-align:center}
+#lgs .s2{display:flex;align-items:center;gap:16px}
+#lgs .bn{font:900 clamp(20px,6.4vw,30px)/1.1 Orbitron,Segoe UI,system-ui,sans-serif;letter-spacing:.1em;color:#eef4ff;margin-top:18px}
+#lgs .s2 .bn{margin-top:0;font-size:clamp(16px,5vw,24px)}
+#lgs .bn b{color:#00eaff}#lgs .bn i{color:#f0a500;font-style:normal;margin:0 .15em}
+#lgs .bs{font:600 clamp(11px,3.2vw,15px) Rajdhani,Segoe UI,system-ui,sans-serif;letter-spacing:.5em;color:#c8d8f0;margin-top:6px;text-transform:uppercase}
+#lgs .dv{width:min(260px,60vw);height:1px;background:linear-gradient(90deg,transparent,#00c8f8,transparent);margin:16px 0 12px}
+#lgs .tg{font:400 clamp(11px,3vw,14px) Rajdhani,Segoe UI,system-ui,sans-serif;color:#c8d8f0;letter-spacing:.06em}#lgs .tg b{color:#00eaff;font-weight:600}
+#lgs .tg2{font:700 clamp(16px,5.2vw,24px)/1.3 Orbitron,Segoe UI,system-ui,sans-serif;color:#eef4ff;margin-top:14px}#lgs .tg2.c{color:#00eaff;margin-top:2px}
+#lgm{position:relative;z-index:1;width:100%;display:flex}
+#lg .lgb{width:min(380px,100%);margin:0 auto}#lg .lgh{text-align:center;margin-bottom:16px}#lg .lgh img{width:84px;height:84px;border-radius:22px;display:block;margin:0 auto 12px;box-shadow:0 10px 30px #00c8f833}#lg h1{font-size:22px;margin:0 0 4px}#lg .lgh p{margin:0;color:var(--mut);font-size:14px}
+#lg .lgc{background:#0b1d38c7;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #00c8f833;border-radius:22px;padding:18px;box-shadow:0 20px 50px #0008}
+#lg label{display:block;font-size:12px;font-weight:600;color:var(--mut);margin:0 0 5px 2px}
+#lg input{width:100%;box-sizing:border-box;border:1px solid var(--bd);background:#061126cc;color:var(--tx);border-radius:12px;padding:13px;font-size:16px;margin-bottom:12px}#lg input::placeholder{color:#6b7f9e}#lg input:focus{outline:2px solid var(--pri);border-color:transparent}
+#lg .pw{position:relative}#lg .pw input{padding-right:46px}#lg .pw button{position:absolute;right:4px;top:3px;width:42px;height:42px;border:0;background:none;font-size:18px;cursor:pointer}
+#lg .go{width:100%;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:16px;color:#fff;background:linear-gradient(#0ea5e9,#0369a1);cursor:pointer;margin-top:2px}#lg .go[disabled]{opacity:.6}
+#lg .msg{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px;line-height:1.4}#lg .msg.e{background:#f8717126;color:#fca5a5}#lg .msg.k{background:#34d39926;color:#6ee7b7}
+#lg .lk{display:flex;justify-content:space-between;gap:10px;margin-top:14px;font-size:14px}#lg .lk a{color:var(--pri);text-decoration:none;font-weight:600}#lg .ft2{text-align:center;color:var(--mut);font-size:12px;margin-top:16px}`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+const f=document.createElement('link');f.rel='stylesheet';f.href='https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap';document.head.appendChild(f);
+const d=document.createElement('div');d.id='lg';d.innerHTML='<div id="lgw"><div id="lgs">'+sl.join('')+'</div><div id="lgm"></div></div>';document.body.appendChild(d)})();
 const cMsg=x=>({'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'Conta não encontrada. Use "Criar conta".','auth/email-already-in-use':'Este e-mail já tem conta. Use "Entrar".','auth/weak-password':'Senha fraca: use ao menos 6 caracteres.','auth/invalid-email':'E-mail inválido.','auth/network-request-failed':'Sem conexão com a internet.','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco.','auth/operation-not-allowed':'Ative "E-mail/senha" em Firebase > Authentication > Sign-in method.','auth/configuration-not-found':'Authentication não ativado: Firebase > Authentication > Começar.','auth/user-disabled':'Esta conta foi desativada.','auth/invalid-api-key':'Chave do Firebase inválida. Confira o FBCFG no index.html.','auth/unauthorized-domain':'Domínio não autorizado: adicione este site em Firebase > Authentication > Settings > Authorized domains.'})[x&&x.code]||('Falha: '+((x&&x.message)||x));
 var LG={m:'in',busy:0,err:'',ok:''};
 function lgShow(){
@@ -430,8 +464,8 @@ function lgShow(){
  d.style.display='flex';
  const sub=m=='up'?'Crie sua conta para sincronizar seus dados':m=='rs'?'Enviaremos um link para redefinir sua senha':'Entre para acessar seus dados';
  const msg=LG.err?'<div class="msg e" role="alert">'+esc(LG.err)+'</div>':LG.ok?'<div class="msg k">'+esc(LG.ok)+'</div>':'';
- const pw=(id,lb,ac)=>'<label for="'+id+'">'+lb+'</label><div class="pw"><input id="'+id+'" type="password" placeholder="••••••" autocomplete="'+ac+'"><button type="button" aria-label="Mostrar senha" onclick="lgEye(this)">👁️</button></div>';
- d.innerHTML='<div class="lgb"><div class="lgh"><img src="icon-192.png" alt="PJ"><h1>Controle Financeiro</h1><p>'+sub+'</p></div>'+
+ const pw=(id,lb,ac)=>'<label for="'+id+'">'+lb+'</label><div class="pw"><input id="'+id+'" type="password" placeholder="Sua senha" autocomplete="'+ac+'"><button type="button" aria-label="Mostrar senha" onclick="lgEye(this)">👁️</button></div>';
+ $('#lgm').innerHTML='<div class="lgb"><div class="lgh"><h1>Controle Financeiro</h1><p>'+sub+'</p></div>'+
   '<form class="lgc" id="lgf" novalidate onsubmit="lgSubmit(event)">'+msg+
   '<label for="ce">E-mail</label><input id="ce" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="email" autocapitalize="off">'+
   (m=='rs'?'':pw('cp',m=='up'?'Senha (mín. 6 caracteres)':'Senha',m=='up'?'new-password':'current-password'))+
@@ -444,8 +478,8 @@ function lgPut(v){if($('#ce'))$('#ce').value=v[0];if($('#cp'))$('#cp').value=v[1
 function lgMode(m){const v=lgVals();LG.m=m;LG.err=LG.ok='';lgShow();lgPut([v[0],'',''])}
 function lgEye(b){const i=b.parentNode.querySelector('input');i.type=i.type=='password'?'text':'password';b.textContent=i.type=='password'?'👁️':'🙈'}
 function lgBusy(v,err,ok){const x=lgVals();LG.busy=v;LG.err=err||'';LG.ok=ok||'';lgShow();lgPut(x)}
-function lgOff(){const d=$('#lg');d.style.display='flex';d.innerHTML='<div class="lgb"><div class="lgh"><img src="icon-192.png" alt="PJ"><h1>Controle Financeiro</h1><p>Sem conexão. Conecte-se à internet para entrar.</p></div><button class="go" onclick="cloudInit()">Tentar de novo</button></div>'}
-function lgHide(){const d=$('#lg');d.style.display='none';d.innerHTML=''}
+function lgOff(){const d=$('#lg');d.style.display='flex';$('#lgm').innerHTML='<div class="lgb"><div class="lgh"><h1>Controle Financeiro</h1><p>Sem conexão. Conecte-se à internet para entrar.</p></div><button class="go" onclick="cloudInit()">Tentar de novo</button></div>'}
+function lgHide(){const d=$('#lg');d.style.display='none';$('#lgm').innerHTML=''}
 function cRender(){if(view=='cfg')render()}
 function cStatus(st,err){CLOUD.st=st;CLOUD.err=err||'';cRender()}
 function vCloud(){
