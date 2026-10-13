@@ -317,7 +317,7 @@ function vCfg(){
  ${['e','r'].map(k=>`<p class="mut" style="margin:12px 0 4px">${k=='e'?'Despesas':'Receitas'}</p>${S.cats[k].map(c=>`<span class="ic" style="display:inline-block;margin:0 6px 6px 0"><i class="dot" style="background:${color(c)}"></i>${esc(c)} <a href="#" onclick="editHint('${k}','${esc(c)}');return false" style="text-decoration:none">✎</a> <a href="#" onclick="rmCat('${k}','${esc(c)}');return false" style="color:var(--bad);text-decoration:none">✕</a></span>`).join('')}`).join('')}</div>
  ${vCloud()}
  <div class="card"><h2>Dados</h2><div class="row" style="flex-wrap:wrap"><button class="btn g" onclick="exportJSON()">⬇️ Backup (JSON)</button><button class="btn g" onclick="exportCSV()">⬇️ Exportar CSV</button><button class="btn g" onclick="$('#imp').click()">⬆️ Importar backup</button><button class="btn g" onclick="$('#ext').click()">📥 Importar extrato (PDF/CSV/OFX)</button></div>
- <p class="mut">Os dados ficam salvos neste aparelho e também na nuvem (card acima). Faça backup regularmente.</p><button class="btn r" onclick="reset()">Apagar todos os dados</button></div>
+ <p class="mut">Os dados ficam salvos neste aparelho e também na nuvem, na sua conta (card acima). Faça backup regularmente.</p><button class="btn r" onclick="reset()">Apagar todos os dados</button></div>
  <div class="card"><h2>Tema</h2><div class="seg"><button onclick="theme('')">Auto</button><button onclick="theme('light')">Claro</button><button onclick="theme('dark')">Escuro</button></div></div>`;
 }
 function theme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme}
@@ -418,42 +418,77 @@ $('#dlg').addEventListener('focusin',e=>{if(e.target.matches('input'))setTimeout
 if(window.visualViewport){const vv=visualViewport,f=()=>{const d=$('#dlg'),kb=innerHeight-vv.height-vv.offsetTop;d.style.maxHeight=kb>80?Math.round(vv.height*.96)+'px':'';d.style.marginBottom=kb>80?kb+'px':''};vv.addEventListener('resize',f);vv.addEventListener('scroll',f)}
 render();
 
-/* ===== NUVEM (Firestore, sem login: codigo secreto) ===== */
+/* ===== NUVEM (Firebase Auth + Firestore) com tela de login ===== */
 var FBCFG={apiKey:"AIzaSyD0BHHRFCId-d4vbxuRVsrnkSDL9bjKG6U",authDomain:"controle-financeiro-154c1.firebaseapp.com",projectId:"controle-financeiro-154c1",storageBucket:"controle-financeiro-154c1.firebasestorage.app",messagingSenderId:"1059789538967",appId:"1:1059789538967:web:fdb2fb8a642381f26f8bd2"};
-var CLOUD={code:'',st:'load',err:''},FB={},unsubT=null,unsubM=null,synced={},metaSig='',metaReady=false,pushT=0,applying=false;
-const getCode=()=>{try{return localStorage.getItem(KEY+'_code')||''}catch(e){return ''}};
-const newCode=()=>{const a=new Uint8Array(24);crypto.getRandomValues(a);return[...a].map(b=>b.toString(16).padStart(2,'0')).join('')};
+var CLOUD={u:null,st:'load',err:''},FB={},unsubT=null,unsubM=null,synced={},metaSig='',metaReady=false,pushT=0,applying=false;
+const lsGet=k=>{try{return localStorage.getItem(KEY+k)||''}catch(e){return ''}},lsSet=(k,v)=>{try{v?localStorage.setItem(KEY+k,v):localStorage.removeItem(KEY+k)}catch(e){}};
+(function(){const st=document.createElement('style');st.textContent='#lg{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(120% 80% at 50% 0,#0b3d33 0,var(--bg) 62%);color:var(--tx);display:none;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));overflow:auto}#lg .lgb{width:min(380px,100%);margin:auto}#lg .lgh{text-align:center;margin-bottom:20px}#lg .lgh img{width:84px;height:84px;border-radius:22px;display:block;margin:0 auto 12px;box-shadow:0 10px 30px #10b98133}#lg h1{font-size:22px;margin:0 0 4px}#lg .lgh p{margin:0;color:var(--mut);font-size:14px}#lg .lgc{background:var(--card);border:1px solid var(--bd);border-radius:22px;padding:18px;box-shadow:0 20px 50px #0004}#lg label{display:block;font-size:12px;font-weight:600;color:var(--mut);margin:0 0 5px 2px}#lg input{width:100%;box-sizing:border-box;border:1px solid var(--bd);background:var(--bg);border-radius:12px;padding:13px;font-size:16px;margin-bottom:12px}#lg input:focus{outline:2px solid var(--pri);border-color:transparent}#lg .pw{position:relative}#lg .pw input{padding-right:46px}#lg .pw button{position:absolute;right:4px;top:3px;width:42px;height:42px;border:0;background:none;font-size:18px;cursor:pointer}#lg .go{width:100%;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:16px;color:#fff;background:linear-gradient(#10b981,#059669);cursor:pointer;margin-top:2px}#lg .go[disabled]{opacity:.6}#lg .msg{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px;line-height:1.4}#lg .msg.e{background:#dc262622;color:var(--bad)}#lg .msg.k{background:#16a34a22;color:var(--ok)}#lg .lk{display:flex;justify-content:space-between;gap:10px;margin-top:14px;font-size:14px}#lg .lk a{color:var(--pri);text-decoration:none;font-weight:600}#lg .ft2{text-align:center;color:var(--mut);font-size:12px;margin-top:16px}';document.head.appendChild(st);const d=document.createElement('div');d.id='lg';document.body.appendChild(d)})();
+const cMsg=x=>({'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'Conta não encontrada. Use "Criar conta".','auth/email-already-in-use':'Este e-mail já tem conta. Use "Entrar".','auth/weak-password':'Senha fraca: use ao menos 6 caracteres.','auth/invalid-email':'E-mail inválido.','auth/network-request-failed':'Sem conexão com a internet.','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco.','auth/operation-not-allowed':'Ative "E-mail/senha" em Firebase > Authentication > Sign-in method.','auth/configuration-not-found':'Authentication não ativado: Firebase > Authentication > Começar.','auth/user-disabled':'Esta conta foi desativada.','auth/invalid-api-key':'Chave do Firebase inválida. Confira o FBCFG no index.html.','auth/unauthorized-domain':'Domínio não autorizado: adicione este site em Firebase > Authentication > Settings > Authorized domains.'})[x&&x.code]||('Falha: '+((x&&x.message)||x));
+var LG={m:'in',busy:0,err:'',ok:''};
+function lgShow(){
+ const d=$('#lg'),m=LG.m;
+ d.style.display='flex';
+ const sub=m=='up'?'Crie sua conta para sincronizar seus dados':m=='rs'?'Enviaremos um link para redefinir sua senha':'Entre para acessar seus dados';
+ const msg=LG.err?'<div class="msg e" role="alert">'+esc(LG.err)+'</div>':LG.ok?'<div class="msg k">'+esc(LG.ok)+'</div>':'';
+ const pw=(id,lb,ac)=>'<label for="'+id+'">'+lb+'</label><div class="pw"><input id="'+id+'" type="password" placeholder="••••••" autocomplete="'+ac+'"><button type="button" aria-label="Mostrar senha" onclick="lgEye(this)">👁️</button></div>';
+ d.innerHTML='<div class="lgb"><div class="lgh"><img src="icon-192.png" alt="PJ"><h1>Controle Financeiro</h1><p>'+sub+'</p></div>'+
+  '<form class="lgc" id="lgf" novalidate onsubmit="lgSubmit(event)">'+msg+
+  '<label for="ce">E-mail</label><input id="ce" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="email" autocapitalize="off">'+
+  (m=='rs'?'':pw('cp',m=='up'?'Senha (mín. 6 caracteres)':'Senha',m=='up'?'new-password':'current-password'))+
+  (m=='up'?pw('cp2','Confirmar senha','new-password'):'')+
+  '<button class="go" id="lgb" type="submit"'+(LG.busy?' disabled':'')+'>'+(LG.busy?'Aguarde…':m=='up'?'Criar conta':m=='rs'?'Enviar link':'Entrar')+'</button>'+
+  '<div class="lk">'+(m=='in'?'<a href="#" onclick="lgMode(\'rs\');return false">Esqueci a senha</a><a href="#" onclick="lgMode(\'up\');return false">Criar conta</a>':'<a href="#" onclick="lgMode(\'in\');return false">← Voltar para entrar</a>')+'</div></form>'+
+  '<div class="ft2">🔒 Seus dados ficam na sua conta e também neste aparelho</div></div>'}
+function lgVals(){return[($('#ce')||{}).value||'',($('#cp')||{}).value||'',($('#cp2')||{}).value||'']}
+function lgPut(v){if($('#ce'))$('#ce').value=v[0];if($('#cp'))$('#cp').value=v[1];if($('#cp2'))$('#cp2').value=v[2]}
+function lgMode(m){const v=lgVals();LG.m=m;LG.err=LG.ok='';lgShow();lgPut([v[0],'',''])}
+function lgEye(b){const i=b.parentNode.querySelector('input');i.type=i.type=='password'?'text':'password';b.textContent=i.type=='password'?'👁️':'🙈'}
+function lgBusy(v,err,ok){const x=lgVals();LG.busy=v;LG.err=err||'';LG.ok=ok||'';lgShow();lgPut(x)}
+function lgOff(){const d=$('#lg');d.style.display='flex';d.innerHTML='<div class="lgb"><div class="lgh"><img src="icon-192.png" alt="PJ"><h1>Controle Financeiro</h1><p>Sem conexão. Conecte-se à internet para entrar.</p></div><button class="go" onclick="cloudInit()">Tentar de novo</button></div>'}
+function lgHide(){const d=$('#lg');d.style.display='none';d.innerHTML=''}
 function cRender(){if(view=='cfg')render()}
 function cStatus(st,err){CLOUD.st=st;CLOUD.err=err||'';cRender()}
 function vCloud(){
  let b;
  if(CLOUD.st=='load')b='<p class="mut">Conectando à nuvem…</p>';
- else if(CLOUD.st=='off')b='<p class="mut">Nuvem indisponível agora (sem internet?). O app segue funcionando offline.</p><button class="btn g" onclick="cloudInit()">Tentar de novo</button>';
- else b='<p class="mut" style="margin:0 0 10px">'+(CLOUD.err?'⚠️ '+esc(CLOUD.err):CLOUD.st=='ok'?'✅ Sincronizado automaticamente':'🔄 Sincronizando…')+'</p><p class="mut" style="margin:0 0 10px;font-size:13px">Para usar em outro aparelho, copie o código aqui e cole lá em "Usar outro código". Guarde-o: quem tiver o código acessa seus dados.</p><div class="row" style="flex-wrap:wrap"><button class="btn g" onclick="cCopy()">📋 Copiar código</button><button class="btn g" onclick="cJoin()">🔗 Usar outro código</button></div>';
+ else if(!CLOUD.u)b='<p class="mut">Nuvem indisponível agora (sem internet?). O app segue funcionando offline.</p><button class="btn g" onclick="cloudInit()">Tentar de novo</button>';
+ else b='<p style="margin:0 0 6px"><b>'+esc(CLOUD.u.email||'')+'</b></p><p class="mut" style="margin:0 0 10px">'+(CLOUD.err?'⚠️ '+esc(CLOUD.err):CLOUD.st=='ok'?'✅ Sincronizado':'🔄 Sincronizando…')+'</p><button class="btn g" onclick="cLogout()">Sair da conta</button>';
  return '<div class="card"><h2>☁️ Nuvem</h2>'+b+'</div>'}
-async function cCopy(){try{await navigator.clipboard.writeText(CLOUD.code);askInfo('Código copiado.','ok')}catch(e){ask('Copie manualmente:',{input:CLOUD.code,ok:'Fechar',title:'Seu código'})}}
-async function cJoin(){
- const v=await ask('Cole o código copiado do outro aparelho. Os dados deste aparelho serão somados aos dessa conta.',{input:'',ok:'Conectar',icon:'🔗',title:'Usar outro código'});
- if(v===null)return;const c=v.trim().toLowerCase();
- if(!/^[0-9a-f]{48}$/.test(c)){askInfo('Código inválido.','err');return}
- if(c===CLOUD.code)return;
- try{localStorage.setItem(KEY+'_code',c)}catch(e){}
- startSync(c)}
+async function lgSubmit(ev){
+ ev.preventDefault();if(LG.busy)return;
+ if(!FB.auth){lgBusy(0,'Conectando… aguarde um instante e tente de novo.');return}
+ const m=LG.m,e=$('#ce').value.trim(),p=$('#cp')?$('#cp').value:'';
+ if(!/^\S+@\S+\.\S+$/.test(e)){lgBusy(0,'Informe um e-mail válido.');return}
+ if(m=='rs'){lgBusy(1);try{await FB.auth.sendPasswordResetEmail(e);lgBusy(0,'','Se existir uma conta com esse e-mail, o link foi enviado. Veja também o spam.')}catch(x){lgBusy(0,cMsg(x))}return}
+ if(p.length<6){lgBusy(0,'A senha precisa ter ao menos 6 caracteres.');return}
+ if(m=='up'&&p!==$('#cp2').value){lgBusy(0,'As senhas não conferem.');return}
+ lgBusy(1);
+ try{m=='up'?await FB.auth.createUserWithEmailAndPassword(e,p):await FB.auth.signInWithEmailAndPassword(e,p)}
+ catch(x){lgBusy(0,cMsg(x))}}
+async function cLogout(){if(await ask('Os dados continuam salvos neste aparelho. Para voltar a sincronizar, entre de novo.',{ok:'Sair',title:'Sair da conta?'}))try{await FB.auth.signOut()}catch(x){}}
 async function cloudInit(){
  CLOUD.st='load';cRender();
  try{
   const V='https://www.gstatic.com/firebasejs/10.12.2/';
-  if(!window.firebase){await loadJS(V+'firebase-app-compat.js');await loadJS(V+'firebase-firestore-compat.js')}
-  if(!FB.db){firebase.initializeApp(FBCFG);FB.db=firebase.firestore();try{await FB.db.enablePersistence({synchronizeTabs:true})}catch(e){}}
-  let c=getCode();if(!c){c=newCode();try{localStorage.setItem(KEY+'_code',c)}catch(e){}}
-  startSync(c)
- }catch(e){cStatus('off')}}
+  if(!window.firebase){await loadJS(V+'firebase-app-compat.js');await loadJS(V+'firebase-auth-compat.js');await loadJS(V+'firebase-firestore-compat.js')}
+  if(!FB.auth){firebase.initializeApp(FBCFG);FB.auth=firebase.auth();FB.db=firebase.firestore();
+   try{await FB.db.enablePersistence({synchronizeTabs:true})}catch(e){}
+   FB.auth.onAuthStateChanged(onUser)}
+ }catch(e){cStatus('ok');if(!lsGet('_in'))lgOff()}}
 function cStop(){if(unsubT)unsubT();if(unsubM)unsubM();unsubT=unsubM=null;synced={};metaSig='';metaReady=false;clearTimeout(pushT)}
 const cLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const metaOf=()=>JSON.parse(JSON.stringify({budgets:S.budgets||{},cats:S.cats,hints:S.hints||{}}));
-function startSync(code){
- cStop();CLOUD.code=code;cStatus('sync');
- const base=FB.db.collection('vault').doc(code);let firstT=true,firstM=true;
+async function onUser(u){
+ cStop();CLOUD.u=u;
+ if(!u){lsSet('_in','');LG.m='in';LG.busy=0;LG.err=LG.ok='';lgShow();cStatus('ok');return}
+ lsSet('_in','1');LG.busy=0;lgHide();
+ const last=lsGet('_uid');
+ if(last&&last!==u.uid&&S.tx.length>0){
+  const limpar=await ask('Os dados deste aparelho pertencem a outra conta. Limpar e usar os dados desta conta? (Se cancelar, os dados locais serão enviados para esta conta.)',{ok:'Limpar e usar',danger:1,title:'Outra conta'});
+  if(limpar){S=def();cLocal();render()}}
+ lsSet('_uid',u.uid);
+ cStatus('sync');
+ const base=FB.db.collection('users').doc(u.uid);let firstT=true,firstM=true;
  const onErr=x=>cStatus('ok',x&&x.code=='permission-denied'?'Sem permissão: publique as regras do Firestore (arquivo firestore.rules).':'Erro de sincronização: '+((x&&x.message)||x));
  unsubT=base.collection('tx').onSnapshot(snap=>{
   applying=true;let ch=false;
@@ -475,10 +510,10 @@ function startSync(code){
    else{if(r.cats&&r.cats.e&&r.cats.r)S.cats=r.cats;S.budgets=r.budgets||{};S.hints=r.hints||{}}
    metaSig=JSON.stringify(r);cLocal();render()}
   if(firstM){firstM=false;metaReady=true;doPush()}},onErr)}
-function cloudPush(){if(!CLOUD.code||applying||!FB.db)return;clearTimeout(pushT);pushT=setTimeout(doPush,500)}
+function cloudPush(){if(!CLOUD.u||applying||!FB.db)return;clearTimeout(pushT);pushT=setTimeout(doPush,500)}
 async function doPush(){
- if(!CLOUD.code)return;
- const base=FB.db.collection('vault').doc(CLOUD.code),ops=[],cur=new Set(),mark=[];
+ const u=CLOUD.u;if(!u)return;
+ const base=FB.db.collection('users').doc(u.uid),ops=[],cur=new Set(),mark=[];
  S.tx.forEach(t=>{cur.add(t.id);const s=JSON.stringify(t);if(synced[t.id]!==s){ops.push(b=>b.set(base.collection('tx').doc(String(t.id)),JSON.parse(s)));synced[t.id]=s;mark.push(t.id)}});
  Object.keys(synced).forEach(id=>{if(!cur.has(id)){ops.push(b=>b.delete(base.collection('tx').doc(id)));delete synced[id]}});
  const m=metaOf(),ms=JSON.stringify(m);
@@ -487,6 +522,7 @@ async function doPush(){
  cStatus('sync');
  try{for(let i=0;i<ops.length;i+=400){const b=FB.db.batch();ops.slice(i,i+400).forEach(f=>f(b));await b.commit()}cStatus('ok')}
  catch(x){mark.forEach(id=>delete synced[id]);metaSig='';cStatus('ok',x&&x.code=='permission-denied'?'Sem permissão: publique as regras do Firestore (arquivo firestore.rules).':'Falha ao enviar: '+((x&&x.message)||x))}}
+if(!lsGet('_in'))lgShow();
 cloudInit();
 </script>
 <script>if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}</script>

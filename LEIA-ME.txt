@@ -1,16 +1,30 @@
-CONTROLE FINANCEIRO - pacote PWA (Android)
+CONTROLE FINANCEIRO - PWA com login (Firebase Auth + Firestore)
 
-1) Publique TODOS os arquivos desta pasta, juntos na raiz, em HTTPS
-   (Netlify Drop, GitHub Pages, Cloudflare Pages ou Vercel).
-   Arquivos: index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png
-   (se subir so o index.html, o sw.js antigo continua valendo).
-2) No Chrome do Android: menu (3 pontos) > Instalar app.
-3) APK/AAB opcional: pwabuilder.com com o endereco publicado.
+ARQUIVOS (publicar todos juntos na raiz, em HTTPS):
+  index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png
+  (firestore.rules NAO sobe para o site: ele vai no console do Firebase)
 
-ATUALIZACOES: o app agora busca sempre a versao mais nova quando ha internet
-(e usa a copia salva so offline). Ao abrir depois de publicar, ele recarrega sozinho.
-Se o GitHub Pages demorar, aguarde 1-2 minutos (cache do proprio GitHub).
-Se ainda aparecer a versao antiga: Chrome > Configuracoes do site > Limpar dados
-(faca Backup JSON antes) ou desinstale e instale de novo.
+CONFIGURAR O FIREBASE (projeto controle-financeiro-154c1) - uma vez so:
+1) console.firebase.google.com > seu projeto > Authentication > Começar
+   > Sign-in method > E-mail/senha > Ativar > Salvar.
+2) Authentication > Settings > Authorized domains > Adicionar domínio:
+   o endereço onde o app está publicado (ex.: seuusuario.github.io).
+   (localhost e *.firebaseapp.com já vêm autorizados)
+3) Firestore Database > Criar banco (modo produção, região southamerica-east1
+   ou a mais próxima). Depois, aba Regras: cole o conteúdo de firestore.rules
+   e clique em Publicar.
+4) Se for usar outro projeto Firebase: Configurações do projeto > Seus apps >
+   Web > copie o firebaseConfig e substitua o objeto FBCFG no index.html
+   (procure por "var FBCFG=").
 
-DADOS: ficam no aparelho. Use Ajustes > Backup (JSON) antes de desinstalar.
+COMO FUNCIONA:
+- Ao abrir sem sessão, aparece a tela de login (Entrar / Criar conta / Esqueci a senha).
+- Cada conta grava em users/{uid}/... e só ela consegue ler (regras acima).
+- Os dados continuam salvos no aparelho e funcionam offline depois do 1º login.
+- Se entrar com outra conta no mesmo aparelho, o app pergunta se deve limpar os dados locais.
+- Dados antigos do modo "código secreto" (coleção vault) não são migrados;
+  os dados locais do aparelho são enviados para a conta no primeiro login.
+
+ATUALIZAÇÕES: o app busca sempre a versão mais nova com internet.
+Se aparecer a versão antiga: Chrome > Configurações do site > Limpar dados
+(faça Backup JSON antes) ou reinstale o app.
